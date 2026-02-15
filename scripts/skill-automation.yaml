@@ -1,0 +1,187 @@
+# Fang Research OS - Skill Automation Configuration
+# 技能自動化配置
+
+version: "1.0.0"
+name: "Skill Automation System"
+
+# 監控類技能自動化
+watcher_automation:
+  enabled: true
+  
+  arxiv_watcher:
+    name: "ArXiv 論文監控"
+    schedule: "0 */4 * * *"  # 每4小時
+    enabled: true
+    topics:
+      - "mmWave radar"
+      - "IAQ"
+      - "carbon accounting"
+      - "building energy"
+    output: "./outputs/arxiv_watcher"
+    
+  stock_watcher:
+    name: "股票監控"
+    schedule: "0 9-18 * * 1-5"  # 股市開盤時間
+    enabled: true
+    tickers:
+      - "2330"  # 台積電
+      - "2379"  # 智慧城市相關
+    output: "./outputs/stock_watcher"
+    
+  topic_monitor:
+    name: "主題監控"
+    schedule: "0 */6 * * *"  # 每6小時
+    enabled: true
+    keywords:
+      - "IAQ"
+      - "mmWave"
+      - "Carbon Neutrality"
+      - "HVAC"
+    output: "./outputs/topic_monitor"
+    
+  research_tracker:
+    name: "研究追蹤"
+    schedule: "0 8 * * *"  # 每天8點
+    enabled: true
+    areas:
+      - "智慧建築"
+      - "室內空氣品質"
+      - "碳盤查"
+    output: "./outputs/research_tracker"
+    
+  youtube_watcher:
+    name: "YouTube 監控"
+    schedule: "0 12 * * *"  # 中午12點
+    enabled: false  # 可選
+    channels: []
+    output: "./outputs/youtube_watcher"
+
+# 搜尋類技能自動化
+search_automation:
+  enabled: true
+  
+  research_paper_search:
+    name: "研究論文搜尋"
+    schedule: "0 8 * * *"  # 每天8點
+    enabled: true
+    keywords:
+      - "mmWave human detection"
+      - "IAQ monitoring"
+      - "building energy carbon"
+    output: "./outputs/research_papers"
+    
+  web_scraper:
+    name: "網頁爬蟲"
+    schedule: "0 */12 * * *"  # 每12小時
+    enabled: true
+    targets:
+      - "https://arxiv.org"
+      - "https://scholar.google.com"
+    output: "./outputs/web_scraper"
+    
+  firecrawl_search:
+    name: "Firecrawl 搜尋"
+    schedule: "0 10 * * *"  # 每天10點
+    enabled: true
+    keywords: ["IAQ", "mmWave", "smart building"]
+    output: "./outputs/firecrawl"
+
+# 觸發自動化
+trigger_automation:
+  enabled: true
+  
+  # 論文監控觸發 → 研究追蹤
+  on_new_paper:
+    trigger: "arxiv-watcher"
+    condition: "new_paper_found"
+    actions:
+      - skill: "research-tracker"
+        priority: 1
+      - skill: "paper-scraper-agent"
+        priority: 2
+      - skill: "literature-search-agent"
+        priority: 3
+        
+  # 股市監控觸發 → 財務追蹤
+  on_market_change:
+    trigger: "stock-watcher"
+    condition: "significant_change"
+    actions:
+      - skill: "intelligent-budget-tracker"
+      - skill: "personal-finance"
+        
+  # 主題監控觸發 → 深度搜尋
+  on_topic_update:
+    trigger: "topic-monitor"
+    condition: "new_content"
+    actions:
+      - skill: "deep-research"
+      - skill: "academic-deep-research"
+
+# 數據分析自動化
+analysis_automation:
+  enabled: true
+  
+  daily_brief:
+    name: "每日研究簡報"
+    schedule: "0 9 * * 1-5"  # 上班日9點
+    enabled: true
+    sources:
+      - "arxiv_watcher"
+      - "stock_watcher"
+      - "topic_monitor"
+    output: "./outputs/daily_brief"
+    
+  weekly_summary:
+    name: "每週研究摘要"
+    schedule: "0 18 * * 5"  # 週五6點
+    enabled: true
+    sources:
+      - "research_tracker"
+      - "web_scraper"
+    output: "./outputs/weekly_summary"
+    
+  monthly_report:
+    name: "每月研究報告"
+    schedule: "0 18 28-31 * *"  # 月底
+    enabled: true
+    output: "./outputs/monthly_report"
+
+# 通知自動化
+notification_automation:
+  enabled: true
+  
+  telegram_notify:
+    name: "Telegram 通知"
+    enabled: true
+    channels:
+      - "telegram"
+      
+  email_notify:
+    name: "Email 通知"
+    enabled: false
+    recipients: []
+
+# 自動化腳本生成
+automation_scripts:
+  enabled: true
+  
+  runner_script: "scripts/automation-runner.sh"
+  config_file: "scripts/skill-automation.yaml"
+  log_file: "logs/automation.log"
+  
+  # 監控腳本
+  monitor_scripts:
+    - name: "arxiv_monitor.sh"
+      source: "arxiv-watcher"
+    - name: "stock_monitor.sh"
+      source: "stock-watcher"
+    - name: "topic_monitor.sh"
+      source: "topic-monitor"
+      
+  # 搜尋腳本
+  search_scripts:
+    - name: "research_search.sh"
+      source: "research-tracker"
+    - name: "web_scraper.sh"
+      source: "web-scraper"
