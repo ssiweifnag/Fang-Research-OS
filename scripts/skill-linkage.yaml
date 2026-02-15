@@ -1,0 +1,539 @@
+# Fang Research OS - Skill Linkage System Design
+# 技能連動系統設計
+
+**版本**：1.0.0  
+**創建時間**：2026-02-15  
+**目標**：建立技能之間的自動連動機制
+
+---
+
+## 📋 目錄
+
+1. [連動概述](#連動概述)
+2. [連動架構](#連動架構)
+3. [連動配置](#連動配置)
+4. [觸發條件](#觸發條件)
+5. [連動範例](#連動範例)
+6. [實施計劃](#實施計劃)
+
+---
+
+## 🎯 連動概述
+
+### 什麼是技能連動？
+
+技能連動是指一個技能執行完成後，自動觸發另一個或多個相關技能，形成連續的工作流。
+
+### 連動優勢
+
+| 優勢 | 說明 |
+|------|------|
+| **自動化** | 無需手動觸發下一個技能 |
+| **效率提升** | 減少等待和切換時間 |
+| **工作流優化** | 串接多個技能形成完整流程 |
+| **錯誤減少** | 自動化減少人為失誤 |
+
+### 連動類型
+
+| 類型 | 說明 | 範例 |
+|------|------|------|
+| **串聯連動** | A → B → C | 監控 → 搜尋 → 分析 |
+| **並聯連動** | A → B, A → C | 一個觸發多個 |
+| **條件連動** | A(條件) → B | 滿足條件才觸發 |
+| **回饋連動** | A → B → A | 形成循環 |
+
+---
+
+## 🏗️ 連動架構
+
+### 架構圖
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Skill Linkage System                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────┐                                                │
+│  │   Trigger   │  觸發層                                         │
+│  │   Layer     │                                                │
+│  └──────┬──────┘                                                │
+│         │                                                        │
+│         ▼                                                        │
+│  ┌─────────────┐                                                │
+│  │  Condition  │  條件層                                         │
+│  │   Layer    │                                                │
+│  └──────┬──────┘                                                │
+│         │                                                        │
+│         ▼                                                        │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐      │
+│  │   Action   │────►│   Action   │────►│   Action   │      │
+│  │   Layer    │     │   Layer    │     │   Layer    │      │
+│  └─────────────┘     └─────────────┘     └─────────────┘      │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                    Feedback Layer                       │   │
+│  │  A → B → C → A (循環優化)                              │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 連動元件
+
+| 元件 | 功能 |
+|------|------|
+| Trigger | 技能執行完成觸發 |
+| Condition | 檢查觸發條件 |
+| Action | 執行連動技能 |
+| Feedback | 回饋與優化 |
+
+---
+
+## ⚙️ 連動配置
+
+### 連動配置檔案結構
+
+```yaml
+# skill-linkage.yaml
+version: "1.0.0"
+name: "Skill Linkage System"
+
+# 全域設定
+global:
+  enabled: true
+  max_chain_length: 5  # 最大連動鏈長度
+  timeout: 300  # 連動超時時間（秒）
+  retry_count: 3  # 重試次數
+  parallel_mode: false  # 預設串聯模式
+
+# 連動定義
+linkages:
+  # 研究類連動
+  research_chain:
+    name: "研究監控連動"
+    enabled: true
+    trigger: "arxiv-watcher"
+    condition:
+      type: "new_content"
+      threshold: 3  # 至少3篇新論文
+    actions:
+      - skill: "research-tracker"
+        priority: 1
+        mode: "sequential"  # 串聯
+      - skill: "paper-scraper-agent"
+        priority: 2
+        mode: "parallel"  # 並聯
+      - skill: "literature-search-agent"
+        priority: 3
+        mode: "sequential"
+
+  # 股票類連動
+  stock_chain:
+    name: "股票監控連動"
+    enabled: true
+    trigger: "stock-watcher"
+    condition:
+      type: "significant_change"
+      threshold: 2.0  # 變動超過2%
+    actions:
+      - skill: "intelligent-budget-tracker"
+        priority: 1
+      - skill: "personal-finance"
+        priority: 2
+
+  # 主題類連動
+  topic_chain:
+    name: "主題監控連動"
+    enabled: true
+    trigger: "topic-monitor"
+    condition:
+      type: "new_keyword_match"
+      keywords: ["IAQ", "mmWave", "carbon"]
+    actions:
+      - skill: "deep-research"
+        priority: 1
+      - skill: "academic-deep-research"
+        priority: 2
+      - skill: "web-scraper"
+        priority: 3
+
+# 條件定義
+conditions:
+  new_content:
+    description: "有新內容時觸發"
+    operator: "exists"
+    
+  significant_change:
+    description: "有顯著變化時觸發"
+    operator: "gt"
+    threshold: 2.0
+    
+  keyword_match:
+    description: "關鍵字匹配時觸發"
+    operator: "contains"
+    
+  threshold_reached:
+    description: "達到閾值時觸發"
+    operator: "gte"
+    threshold: 3
+
+# 連動模式
+modes:
+  sequential:
+    description: "依序執行"
+    parallel: false
+    
+  parallel:
+    description: "同時執行"
+    parallel: true
+    
+  conditional:
+    description: "條件滿足才執行"
+    depends_on: "condition"
+
+# 錯誤處理
+error_handling:
+  on_failure: "skip"  # skip, retry, abort
+  on_timeout: "abort"
+  notification: true
+  fallback_skill: null
+```
+
+---
+
+## 🔥 觸發條件
+
+### 條件類型
+
+| 條件類型 | 說明 | 範例 |
+|----------|------|------|
+| `new_content` | 有新內容 | arxiv-watcher 發現新論文 |
+| `significant_change` | 有顯著變化 | 股票漲跌幅 > 2% |
+| `keyword_match` | 關鍵字匹配 | 標題包含 "mmWave" |
+| `threshold_reached` | 達到閾值 | 發現 5 篇新論文 |
+| `time_based` | 時間觸發 | 每小時整點 |
+| `manual` | 手動觸發 | 用戶要求 |
+
+### 條件表達式
+
+```yaml
+conditions:
+  # 簡單條件
+  simple:
+    - type: "new_content"
+      value: true
+      
+  # 數值條件
+  numeric:
+    - type: "change_percent"
+      operator: "gt"
+      value: 2.0
+      
+  # 文字條件
+  text:
+    - type: "title"
+      operator: "contains"
+      value: "IAQ"
+      
+  # 組合條件
+  compound:
+    - type: "and"
+      conditions:
+        - type: "new_content"
+        - type: "keyword_match"
+          value: "carbon"
+```
+
+---
+
+## 🔗 連動範例
+
+### 範例 1：研究論文連動
+
+```yaml
+# 研究論文連動
+research_paper_linkage:
+  name: "論文發現 → 追蹤 → 摘要 → 筆記"
+  enabled: true
+  
+  trigger:
+    skill: "arxiv-watcher"
+    event: "new_papers_found"
+    
+  condition:
+    type: "count"
+    operator: "gte"
+    value: 1
+    
+  chain:
+    - name: "Step 1 - 研究追蹤"
+      skill: "research-tracker"
+      params:
+        action: "add_to_tracker"
+        
+    - name: "Step 2 - 論文摘要"
+      skill: "paper-scraper-agent"
+      params:
+        action: "summarize"
+        
+    - name: "Step 3 - 文獻搜尋"
+      skill: "literature-search-agent"
+      params:
+        action: "search_related"
+        
+    - name: "Step 4 - 建立筆記"
+      skill: "zettelkasten"
+      params:
+        action: "create_note"
+```
+
+### 範例 2：股市監控連動
+
+```yaml
+# 股市監控連動
+stock_monitoring_linkage:
+  name: "股市變動 → 分析 → 通知 → 紀錄"
+  enabled: true
+  
+  trigger:
+    skill: "stock-watcher"
+    event: "price_change"
+    
+  condition:
+    type: "change_percent"
+    operator: "gte"
+    value: 3.0
+    
+  chain:
+    - name: "Step 1 - 財務分析"
+      skill: "finance"
+      params:
+        action: "analyze_impact"
+        
+    - name: "Step 2 - 智慧預算更新"
+      skill: "intelligent-budget-tracker"
+      params:
+        action: "update_budget"
+        
+    - name: "Step 3 - 發送通知"
+      skill: "telegram-notify"
+      params:
+        action: "send_alert"
+```
+
+### 範例 3：主題監控連動
+
+```yaml
+# 主題監控連動
+topic_monitoring_linkage:
+  name: "新主題 → 深度搜尋 → 競爭分析 → 報告"
+  enabled: true
+  
+  trigger:
+    skill: "topic-monitor"
+    event: "new_content"
+    
+  condition:
+    type: "keyword_match"
+    keywords: ["IAQ", "mmWave", "carbon"]
+    
+  chain:
+    - name: "Step 1 - 深度搜尋"
+      skill: "deep-research"
+      params:
+        action: "search"
+        
+    - name: "Step 2 - 競爭分析"
+      skill: "competitive-intelligence-market-research"
+      params:
+        action: "analyze"
+        
+    - name: "Step 3 - 生成報告"
+      skill: "blog-writer"
+      params:
+        action: "generate_report"
+```
+
+### 範例 4：生活健康連動
+
+```yaml
+# 生活健康連動
+health_lifestyle_linkage:
+  name: "健身 → 飲食 → 睡眠 → 追蹤"
+  enabled: true
+  
+  trigger:
+    skill: "workout"
+    event: "workout_completed"
+    
+  condition:
+    type: "exists"
+    
+  chain:
+    - name: "Step 1 - 記錄訓練"
+      skill: "workout-logger"
+      params:
+        action: "log_workout"
+        
+    - name: "Step 2 - 更新飲食計劃"
+      skill: "plan2meal"
+      params:
+        action: "adjust_meal_plan"
+        
+    - name: "Step 3 - 追蹤進度"
+      skill: "habit-flow-skill"
+      params:
+        action: "track_progress"
+```
+
+---
+
+## 🚀 實施計劃
+
+### Phase 1：基礎連動（Day 1-3）
+
+| 任務 | 天數 | 狀態 |
+|------|------|------|
+| 建立連動配置檔案 | 1 天 | 待辦 |
+| 測試簡單連動 | 1 天 | 待辦 |
+| 文件化連動規則 | 1 天 | 待辦 |
+
+### Phase 2：研究連動（Day 4-7）
+
+| 任務 | 天數 | 狀態 |
+|------|------|------|
+| arxiv-watcher → research-tracker | 1 天 | 待辦 |
+| research-tracker → paper-scraper | 1 天 | 待辦 |
+| paper-scraper → literature-search | 1 天 | 待辦 |
+| 整合測試 | 1 天 | 待辦 |
+
+### Phase 3：生活連動（Day 8-14）
+
+| 任務 | 天數 | 狀態 |
+|------|------|------|
+| workout → workout-logger → habit-flow | 2 天 | 待辦 |
+| plan2meal → diet-tracker | 1 天 | 待辦 |
+| 財務連動（stock → finance） | 2 天 | 待辦 |
+
+### Phase 4：優化與擴展（Day 15-21）
+
+| 任務 | 天數 | 狀態 |
+|------|------|------|
+| 增加錯誤處理 | 2 天 | 待辦 |
+| 優化連動效能 | 2 天 | 待辦 |
+| 文件化最佳實踐 | 1 天 | 待辦 |
+
+---
+
+## 📊 連動效果預估
+
+### 效率提升
+
+| 連動類型 | 自動化前 | 自動化後 | 提升 |
+|----------|----------|----------|------|
+| 研究論文監控 | 30 分鐘/次 | 5 分鐘/次 | +83% |
+| 股市追蹤 | 1 小時/天 | 10 分鐘/天 | +83% |
+| 主題監控 | 45 分鐘/次 | 5 分鐘/次 | +89% |
+| 健康追蹤 | 30 分鐘/天 | 5 分鐘/天 | +83% |
+
+### 覆蓋範圍
+
+| 領域 | 連動技能數 | 涵蓋任務 |
+|------|-----------|----------|
+| 研究 | 4 個 | 監控→追蹤→分析→筆記 |
+| 財務 | 3 個 | 監控→分析→預算 |
+| 生活 | 4 個 | 健身→飲食→睡眠→追蹤 |
+| 學習 | 3 個 | 搜尋→摘要→筆記 |
+
+---
+
+## 🛠️ 配置範本
+
+### 基本連動配置
+
+```yaml
+# skill-linkage-basic.yaml
+linkages:
+  # 預設連動
+  default:
+    enabled: true
+    trigger: null
+    condition: null
+    actions: []
+    
+  # 自訂連動
+  custom:
+    enabled: true
+    trigger: "技能名稱"
+    condition:
+      type: "new_content"
+    actions:
+      - skill: "連動技能1"
+        priority: 1
+      - skill: "連動技能2"
+        priority: 2
+```
+
+### 進階連動配置
+
+```yaml
+# skill-linkage-advanced.yaml
+linkages:
+  # 串聯連動
+  sequential:
+    mode: "sequential"
+    actions:
+      - skill: "A"
+      - skill: "B"
+      - skill: "C"
+      
+  # 並聯連動
+  parallel:
+    mode: "parallel"
+    actions:
+      - skill: "A"
+      - skill: "B"
+      - skill: "C"
+      
+  # 條件連動
+  conditional:
+    condition:
+      type: "threshold"
+      value: 5
+    actions:
+      - skill: "A"
+```
+
+---
+
+## 📁 相關檔案
+
+| 檔案 | 說明 |
+|------|------|
+| `scripts/skill-automation.yaml` | 自動化配置 |
+| `scripts/automation-runner.sh` | 執行腳本 |
+| `scripts/skill-linkage.yaml` | 連動配置（待創建） |
+
+---
+
+## ✅ 待辦清單
+
+- [ ] 建立 skill-linkage.yaml
+- [ ] 測試基本連動
+- [ ] 實施工研究連動
+- [ ] 實現生活連動
+- [ ] 優化錯誤處理
+- [ ] 文件化最佳實踐
+
+---
+
+## 🔗 擴展資源
+
+- [OpenClaw 文檔](https://docs.openclaw.ai)
+- [ClawHub](https://clawhub.com)
+- [Fang Research OS](https://github.com/ssiweifnag/Fang-Research-OS)
+
+---
+
+*創建時間：2026-02-15*
+*博士班倒數：6 個月 🔥*
