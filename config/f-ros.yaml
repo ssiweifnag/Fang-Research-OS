@@ -1,49 +1,106 @@
-# Fang Research OS v1.0 - Core Configuration
-# 研究自動化系統核心配置
+# Fang Research OS v1.0 - Main Configuration
+# 博士級研究自動化系統核心配置
+# Author: 方思惟 (Si-Wei Fang)
+# Version: 1.0.0
 
 system:
   name: "Fang Research OS"
   version: "1.0.0"
-  description: "博士級研究自動化系統"
+  description: "博士級 × 期刊級 × OpenClaw 可執行 × SCI Agent 自動化"
+  author: "方思惟"
+  license: "MIT"
+  repo: "https://github.com/ssiweifnag/Fang-Research-OS"
 
-modes:
-  phd_deep_analysis:
-    name: "PhD Deep Mode"
+# 研究模式配置
+research_modes:
+  phd_deep_mode:
+    name: "PhD Deep Analysis Mode"
+    name_zh: "博士深度分析模式"
+    description: "博士論文級別的深度分析框架"
     enabled: true
     
-    focus:
-      - core_questions
-      - thematic_synthesis
-      - contradiction_detection
-      - gap_analysis
+    # 核心參數
+    parameters:
+      model: "deepseek-v3"
+      temperature: 0.7
+      max_tokens: 8192
     
+    # 分析步驟
+    steps:
+      - name: "generate_core_questions"
+        description: "生成5個核心研究問題"
+        required: true
+        
+      - name: "thematic_synthesis"
+        description: "文獻主題歸納（5-10個）"
+        required: true
+        
+      - name: "contradiction_detection"
+        description: "矛盾分析"
+        required: true
+        
+      - name: "gap_analysis"
+        description: "研究缺口識別"
+        required: true
+        
+      - name: "contribution_mapping"
+        description: "貢獻定位"
+        required: false
+    
+    # 輸出格式
     output:
-      type: "structured_academic"
       format: "markdown"
       sections:
         - core_questions
-        - themes
-        - contradictions
-        - gaps
+        - thematic_synthesis
+        - contradiction_analysis
+        - gap_analysis
         - recommendations
     
+    # 引用政策
     evidence_policy:
       require_citation: true
-      highlight_conflicts: true
-      admit_gaps: true
       citation_style: "apa"
+      highlight_conflict: true
+      admit_limitations: true
+    
+    # 提示詞路徑
+    prompts:
+      primary: "f-ros/phd_deep_mode/prompt.md"
+      variants:
+        literature_review: "f-ros/phd_deep_mode/variants/literature_review.md"
+        discussion: "f-ros/phd_deep_mode/variants/discussion.md"
+        methodology: "f-ros/phd_deep_mode/variants/methodology.md"
 
-  journal_defense:
-    name: "Reviewer Killer Mode"
+  journal_defense_mode:
+    name: "Journal Defense Mode"
+    name_zh: "期刊防禦模式"
+    description: "針對審稿人的預防性分析"
     enabled: true
     
-    focus:
-      - methodology_strength
-      - statistical_validity
-      - reviewer_attack_points
+    parameters:
+      model: "llama-405b"
+      temperature: 0.5
+      max_tokens: 8192
+    
+    steps:
+      - name: "statistical_check"
+        description: "統計完整性檢查"
+        required: true
+        
+      - name: "reviewer_attack_simulation"
+        description: "審稿攻擊模擬"
+        required: true
+        
+      - name: "overclaim_detection"
+        description: "過度推論檢測"
+        required: true
+        
+      - name: "robustness_evaluation"
+        description: "穩健性評估"
+        required: true
     
     output:
-      type: "defensive_brief"
       format: "markdown"
       sections:
         - findings
@@ -51,110 +108,288 @@ modes:
         - weaknesses
         - threats
         - countermeasures
-
-  decision_memo:
-    name: "Decision Memo Mode"
-    enabled: true
     
-    focus:
-      - actionable_insights
-      - constraints
-      - blindspots
-    
-    output:
-      type: "executive_summary"
-      format: "markdown"
+    focus_areas:
+      - "樣本數"
+      - "實驗設計"
+      - "統計顯著性"
+      - "控制變數"
+      - "再現性"
+      - "外部有效性"
 
   synthesis_mode:
     name: "Concept Synthesis Mode"
+    name_zh: "概念綜合模式"
+    description: "跨領域概念連結與創新識別"
     enabled: true
     
-    focus:
-      - abstract_connections
-      - cross_domain_links
-      - novel_combinations
+    parameters:
+      model: "deepseek-v3"
+      temperature: 0.8
+      max_tokens: 8192
+    
+    steps:
+      - name: "cross_domain_mapping"
+        description: "跨領域映射"
+        required: true
+        
+      - name: "abstract_link_generation"
+        description: "抽象連結生成"
+        required: true
+        
+      - name: "innovation_potential_score"
+        description: "創新潛力評分"
+        required: false
     
     output:
-      type: "conceptual_framework"
       format: "markdown"
+      sections:
+        - abstract_connections
+        - cross_domain_links
+        - novel_combinations
 
-# 子代理整合
+  gap_analyzer:
+    name: "Gap Analyzer"
+    name_zh: "缺口分析器"
+    description: "研究缺口識別與優先排序"
+    enabled: true
+    
+    parameters:
+      model: "deepseek-v3"
+      temperature: 0.7
+      max_tokens: 4096
+    
+    require:
+      - name: "method_alignment"
+        description: "方法對齊檢查"
+        
+      - name: "skipped_steps_detection"
+        description: "跳過步驟檢測"
+        
+      - name: "missing_prerequisite_flag"
+        description: "缺失前提標記"
+
+# 子代理整合配置
 agents:
   literature_review:
     agent: "literature-review-agent"
     enabled: true
+    description: "文獻回顧代理"
     
   research_writing:
     agent: "research-writing-agent"
     enabled: true
+    description: "研究寫作代理"
     
   phd_methodology:
     agent: "phd-research-methodology"
     enabled: true
+    description: "博士研究方法代理"
+    
+  opencode:
+    agent: "opencode"
+    enabled: true
+    description: "程式碼生成代理"
 
-# 記憶整合
+# 記憶系統整合
 memory:
   type: "sqlite_fts5"
+  enabled: true
+  
   tables:
-    - "daily_notes"
-    - "long_term_memory"
-    - "research_memories"
+    - name: "daily_notes"
+      description: "每日筆記"
+      
+    - name: "long_term_memory"
+      description: "長期記憶"
+      
+    - name: "research_memories"
+      description: "研究記憶"
   
   policies:
     - "atomic_notes"
     - "zettelkasten_links"
     - "evidence_citations"
+    - "conflict_tracking"
 
 # 技能整合
 skills:
   research:
-    - "literature-review-agent"
-    - "research-writing-agent"
-    - "phd-research-methodology"
+    - name: "literature-review-agent"
+      enabled: true
+      
+    - name: "research-writing-agent"
+      enabled: true
+      
+    - name: "phd-research-methodology"
+      enabled: true
   
   ai:
-    - "openai-whisper"
-    - "nano-banana-pro"
+    - name: "openai-whisper"
+      enabled: true
+      description: "語音轉文字"
+      
+    - name: "nano-banana-pro"
+      enabled: true
+      description: "圖像生成"
   
   knowledge:
-    - "obsidian"
-    - "zettelkasten"
-    - "notion"
+    - name: "obsidian"
+      enabled: true
+      
+    - name: "zettelkasten"
+      enabled: true
+      
+    - name: "notion"
+      enabled: true
+  
+  home_automation:
+    - name: "homeassistant-skill"
+      enabled: true
+      
+    - name: "openhue"
+      enabled: true
+      
+    - name: "sonoscli"
+      enabled: true
 
 # 執行配置
 execution:
   mode: "automated"
   confirmation: true
   output_dir: "./outputs"
+  log_level: "info"
   
   phd_deep_analysis:
     auto_cite: true
     max_themes: 10
     min_confidence: 0.7
-  
+    save_intermediate: true
+    
   journal_defense:
     auto_find_weaknesses: true
     auto_suggest_countermeasures: true
     reviewer_persona: "strict"
+    severity_threshold: "medium"
 
-# 工作流程
+# 自動化工作流
 workflows:
   paper_review:
+    name: "論文審查流程"
+    description: "完整論文審查與改進工作流"
     steps:
       - mode: "phd_deep_analysis"
-      - mode: "journal_defense"
+        output: "paper_analysis"
+        
+      - mode: "journal_defense_mode"
+        output: "defense_brief"
+        
       - mode: "decision_memo"
-    output: "paper_review_report"
+        output: "decision_summary"
+    
+    output:
+      type: "comprehensive_report"
+      format: "markdown"
   
   literature_synthesis:
+    name: "文獻綜述流程"
+    description: "文獻綜述生成工作流"
     steps:
       - mode: "phd_deep_analysis"
+        focus: "themes"
+        output: "theme_analysis"
+        
       - mode: "synthesis_mode"
-    output: "literature_synthesis"
+        output: "synthesis_report"
+    
+    output:
+      type: "literature_review"
+      format: "markdown"
   
   gap_analysis:
+    name: "缺口分析流程"
+    description: "研究缺口識別工作流"
     steps:
       - mode: "phd_deep_analysis"
         focus: "gaps"
+        output: "gap_identification"
+        
       - mode: "synthesis_mode"
-    output: "gap_analysis_report"
+        output: "research_directions"
+    
+    output:
+      type: "gap_analysis_report"
+      format: "markdown"
+
+# 整合配置
+integrations:
+  obsidian:
+    enabled: true
+    vault_path: "/Users/pc/.obsidian/vaults/Fang-Research-OS"
+    sync_interval: "1h"
+    auto_backup: true
+    
+  homeassistant:
+    enabled: true
+    entity_id: "input_select.research_mode"
+    trigger_event: "research_trigger"
+    notify_service: "notify.telegram"
+    
+  memos:
+    enabled: true
+    storage: "sqlite_fts5"
+    table: "research_memories"
+    auto_sync: true
+
+# 觸發器配置
+triggers:
+  daily_brief:
+    name: "每日研究摘要"
+    schedule: "0 9 * * 1-5"
+    mode: "phd_deep_mode"
+    output: "daily_brief"
+    enabled: true
+    
+  weekly_review:
+    name: "每週研究回顧"
+    schedule: "0 18 * * 5"
+    mode: "synthesis_mode"
+    output: "weekly_review"
+    enabled: true
+    
+  on_new_paper:
+    name: "新論文審查"
+    trigger: "on_new_paper"
+    mode: "journal_defense_mode"
+    output: "paper_review"
+    enabled: true
+
+# 輸出配置
+output:
+  base_dir: "./outputs"
+  format: "markdown"
+  naming: "timestamp_topic"
+  
+ 保存設置:
+    - "core_questions"
+    - "themes"
+    - "conflicts"
+    - "gaps"
+    - "recommendations"
+    - "defense_brief"
+    - "synthesis"
+
+# 日誌配置
+logging:
+  level: "info"
+  format: "json"
+  output: "logs/f-ros.log"
+  max_size: "10M"
+  backup_count: 5
+
+# 開發者選項
+developer:
+  debug_mode: false
+  verbose_output: false
+  save_intermediate: true
+  test_mode: false
