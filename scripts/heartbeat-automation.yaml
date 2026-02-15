@@ -1,0 +1,304 @@
+# Heartbeat Task Automation Configuration
+# 心跳任務自動化配置
+
+version: "1.0.0"
+name: "Heartbeat Task Automation System"
+
+# 執行時間配置
+schedule:
+  times:
+    - "08:00"  # 早晨
+    - "14:00"  # 午後
+    - "20:00"  # 晚間
+  
+  timezone: "Asia/Taipei"
+
+# 心跳任務定義
+heartbeat_tasks:
+  
+  # Task 1: GitHub Skill Search
+  github_skill_search:
+    name: "GitHub 技能搜尋"
+    description: "搜尋並安裝新的 ClawHub Skills"
+    schedule: "08:00, 20:00"  # 每天2次
+    enabled: true
+    
+    # 搜尋關鍵字
+    search_keywords:
+      - "research"
+      - "ai"
+      - "productivity"
+      - "learning"
+      - "automation"
+    
+    # 連動技能
+    linked_skills:
+      - skill: "clawhub"
+        action: "search"
+        priority: 1
+      - skill: "github"
+        action: "search_repos"
+        priority: 2
+      - skill: "opencode"
+        action: "generate_code"
+        priority: 3  # 自動安裝腳本
+    
+    # 輸出配置
+    output:
+      dir: "./outputs/github_skills"
+      format: "markdown"
+      filename: "skill_search_{date}.md"
+    
+    # 自動化腳本
+    script: "python3 /Users/pc/.openclaw/workspace/scripts/github-skill-search.py"
+    
+    # 觸發條件
+    trigger:
+      type: "schedule"
+      time: "08:00, 20:00"
+    
+    # 通知配置
+    notification:
+      enabled: true
+      channel: "telegram"
+      message: "✅ GitHub 技能搜尋完成，找到 {count} 個新技能"
+  
+  # Task 2: System Health Check
+  system_health_check:
+    name: "系統健康檢查"
+    description: "檢查 Cron 工作、關鍵檔案、子代理狀態"
+    schedule: "08:00, 14:00, 20:00"  # 每天3次
+    enabled: true
+    
+    # 檢查項目
+    check_items:
+      - "cron_status"
+      - "files_exist"
+      - "subagents_running"
+      - "memory_usage"
+      - "disk_usage"
+    
+    # 連動技能
+    linked_skills:
+      - skill: "healthcheck"
+        action: "full_check"
+        priority: 1
+      - skill: "system-architect"
+        action: "analyze_system"
+        priority: 2
+      - skill: "ping-monitor"
+        action: "monitor_services"
+        priority: 3
+    
+    # 輸出配置
+    output:
+      dir: "./outputs/health_checks"
+      format: "json"
+      filename: "health_{timestamp}.json"
+    
+    # 自動化腳本
+    script: "python3 /Users/pc/.openclaw/workspace/scripts/heartbeat-check.py"
+    
+    # 觸發條件
+    trigger:
+      type: "schedule"
+      time: "08:00, 14:00, 20:00"
+    
+    # 通知配置
+    notification:
+      enabled: true
+      channel: "telegram"
+      message: "🩺 系統健康檢查完成，健康分數: {score}%"
+    
+    # 錯誤處理
+    error_handling:
+      on_failure: "retry"
+      max_retries: 3
+      retry_interval: 60
+  
+  # Task 3: Knowledge Extraction
+  knowledge_extraction:
+    name: "知識提取"
+    description: "讀取記憶、識別技能、生成報告"
+    schedule: "14:00"  # 每天1次
+    enabled: true
+    
+    # 提取來源
+    sources:
+      - "memory/daily"
+      - "memory/long_term"
+      - "research_memories"
+    
+    # 連動技能
+    linked_skills:
+      - skill: "research-evolution"
+        action: "extract_knowledge"
+        priority: 1
+      - skill: "memory-hygiene"
+        action: "organize_memory"
+        priority: 2
+      - skill: "literature-review-agent"
+        action: "review_papers"
+        priority: 3  # 識別可回顧論文
+      - skill: "zettelkasten"
+        action: "update_notes"
+        priority: 4  # 更新筆記
+    
+    # 輸出配置
+    output:
+      dir: "./outputs/knowledge_extraction"
+      format: "markdown"
+      filename: "extraction_{date}.md"
+    
+    # 自動化腳本
+    script: "bash /Users/pc/.openclaw/workspace/scripts/knowledge-extractor.sh"
+    
+    # 觸發條件
+    trigger:
+      type: "schedule"
+      time: "14:00"
+    
+    # 通知配置
+    notification:
+      enabled: true
+      channel: "telegram"
+      message: "🧠 知識提取完成，發現 {skills} 個可提取技能"
+
+# 連動觸發配置
+linkage_triggers:
+  
+  # GitHub 搜尋完成 → 安裝技能
+  on_github_search_complete:
+    trigger_task: "github_skill_search"
+    condition:
+      type: "new_skills_found"
+      threshold: 1
+    actions:
+      - skill: "opencode"
+        action: "generate_install_script"
+        params:
+          skills: "{new_skills}"
+      - skill: "github"
+        action: "create_pr"
+        params:
+          title: "Add new skills"
+      
+  # 健康檢查完成 → 修復問題
+  on_health_check_complete:
+    trigger_task: "system_health_check"
+    condition:
+      type: "health_score"
+      operator: "lt"
+      threshold: 80
+    actions:
+      - skill: "system-architect"
+        action: "suggest_fix"
+      - skill: "healthcheck"
+        action: "run_repairs"
+      
+  # 知識提取完成 → 更新筆記
+  on_knowledge_extraction_complete:
+    trigger_task: "knowledge_extraction"
+    condition:
+      type: "new_insights"
+      threshold: 1
+    actions:
+      - skill: "zettelkasten"
+        action: "create_notes"
+      - skill: "obsidian"
+        action: "sync_vault"
+
+# Cron 排程配置
+cron_config:
+  timezone: "Asia/Taipei"
+  
+  jobs:
+    - name: "github_skill_search_morning"
+      task: "github_skill_search"
+      schedule: "0 8 * * *"
+      enabled: true
+      
+    - name: "github_skill_search_evening"
+      task: "github_skill_search"
+      schedule: "0 20 * * *"
+      enabled: true
+      
+    - name: "health_check_morning"
+      task: "system_health_check"
+      schedule: "0 8 * * *"
+      enabled: true
+      
+    - name: "health_check_afternoon"
+      task: "system_health_check"
+      schedule: "0 14 * * *"
+      enabled: true
+      
+    - name: "health_check_evening"
+      task: "system_health_check"
+      schedule: "0 20 * * *"
+      enabled: true
+      
+    - name: "knowledge_extraction"
+      task: "knowledge_extraction"
+      schedule: "0 14 * * *"
+      enabled: true
+
+# 通知配置
+notifications:
+  telegram:
+    enabled: true
+    chat_id: "${TELEGRAM_CHAT_ID}"
+    bot_token: "${TELEGRAM_BOT_TOKEN}"
+    
+  email:
+    enabled: false
+    smtp_server: "${SMTP_SERVER}"
+    sender: "${EMAIL_SENDER}"
+    
+# 輸出配置
+outputs:
+  base_dir: "./outputs/heartbeat"
+  
+  subdirs:
+    - "github_skills"
+    - "health_checks"
+    - "knowledge_extraction"
+    
+  naming:
+    pattern: "{task}_{timestamp}"
+    date_format: "%Y%m%d_%H%M%S"
+    
+# 日誌配置
+logging:
+  level: "info"
+  format: "json"
+  file: "./logs/heartbeat_automation.log"
+  max_size: "10M"
+  backup_count: 5
+  
+# 錯誤處理
+error_handling:
+  on_task_failure: "retry"
+  max_retries: 3
+  retry_delay: 60
+  fallback_action: "notify"
+  
+  on_linkage_failure: "skip"
+  notify_on_failure: true
+
+# 監控配置
+monitoring:
+  enabled: true
+  metrics:
+    - "task_execution_time"
+    - "success_rate"
+    - "linkage_chain_length"
+    - "notification_delivery"
+  
+  alerts:
+    - condition: "success_rate < 0.8"
+      action: "notify"
+      message: "⚠️ 心跳任務成功率低於 80%"
+    - condition: "task_execution_time > 300"
+      action: "notify"
+      message: "⚠️ 任務執行時間過長"
