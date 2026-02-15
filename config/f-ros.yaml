@@ -1,0 +1,160 @@
+# Fang Research OS v1.0 - Core Configuration
+# 研究自動化系統核心配置
+
+system:
+  name: "Fang Research OS"
+  version: "1.0.0"
+  description: "博士級研究自動化系統"
+
+modes:
+  phd_deep_analysis:
+    name: "PhD Deep Mode"
+    enabled: true
+    
+    focus:
+      - core_questions
+      - thematic_synthesis
+      - contradiction_detection
+      - gap_analysis
+    
+    output:
+      type: "structured_academic"
+      format: "markdown"
+      sections:
+        - core_questions
+        - themes
+        - contradictions
+        - gaps
+        - recommendations
+    
+    evidence_policy:
+      require_citation: true
+      highlight_conflicts: true
+      admit_gaps: true
+      citation_style: "apa"
+
+  journal_defense:
+    name: "Reviewer Killer Mode"
+    enabled: true
+    
+    focus:
+      - methodology_strength
+      - statistical_validity
+      - reviewer_attack_points
+    
+    output:
+      type: "defensive_brief"
+      format: "markdown"
+      sections:
+        - findings
+        - strengths
+        - weaknesses
+        - threats
+        - countermeasures
+
+  decision_memo:
+    name: "Decision Memo Mode"
+    enabled: true
+    
+    focus:
+      - actionable_insights
+      - constraints
+      - blindspots
+    
+    output:
+      type: "executive_summary"
+      format: "markdown"
+
+  synthesis_mode:
+    name: "Concept Synthesis Mode"
+    enabled: true
+    
+    focus:
+      - abstract_connections
+      - cross_domain_links
+      - novel_combinations
+    
+    output:
+      type: "conceptual_framework"
+      format: "markdown"
+
+# 子代理整合
+agents:
+  literature_review:
+    agent: "literature-review-agent"
+    enabled: true
+    
+  research_writing:
+    agent: "research-writing-agent"
+    enabled: true
+    
+  phd_methodology:
+    agent: "phd-research-methodology"
+    enabled: true
+
+# 記憶整合
+memory:
+  type: "sqlite_fts5"
+  tables:
+    - "daily_notes"
+    - "long_term_memory"
+    - "research_memories"
+  
+  policies:
+    - "atomic_notes"
+    - "zettelkasten_links"
+    - "evidence_citations"
+
+# 技能整合
+skills:
+  research:
+    - "literature-review-agent"
+    - "research-writing-agent"
+    - "phd-research-methodology"
+  
+  ai:
+    - "openai-whisper"
+    - "nano-banana-pro"
+  
+  knowledge:
+    - "obsidian"
+    - "zettelkasten"
+    - "notion"
+
+# 執行配置
+execution:
+  mode: "automated"
+  confirmation: true
+  output_dir: "./outputs"
+  
+  phd_deep_analysis:
+    auto_cite: true
+    max_themes: 10
+    min_confidence: 0.7
+  
+  journal_defense:
+    auto_find_weaknesses: true
+    auto_suggest_countermeasures: true
+    reviewer_persona: "strict"
+
+# 工作流程
+workflows:
+  paper_review:
+    steps:
+      - mode: "phd_deep_analysis"
+      - mode: "journal_defense"
+      - mode: "decision_memo"
+    output: "paper_review_report"
+  
+  literature_synthesis:
+    steps:
+      - mode: "phd_deep_analysis"
+      - mode: "synthesis_mode"
+    output: "literature_synthesis"
+  
+  gap_analysis:
+    steps:
+      - mode: "phd_deep_analysis"
+        focus: "gaps"
+      - mode: "synthesis_mode"
+    output: "gap_analysis_report"
